@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FounderCRM — Property Discovery</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f2ec;
+    --paper2: #edeae2;
+    --paper3: #e4e0d6;
+    --accent: #c8522a;
+    --accent2: #3a6b4a;
+    --accent3: #2c4a7c;
+    --gold: #c9971c;
+    --muted: #7a7468;
+    --border: #d4cfc5;
+    --white: #fefdfb;
+    --danger: #b53232;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); font-size: 14px; }
+
+  /* LAYOUT */
+  #app { display: flex; height: 100vh; overflow: hidden; }
+  #sidebar { width: var(--sidebar-w); background: var(--ink); color: var(--white); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  #main { flex: 1; overflow-y: auto; background: var(--paper); }
+
+  /* SIDEBAR */
+  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid #2a2825; }
+  .sidebar-logo h1 { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--white); letter-spacing: -0.3px; }
+  .sidebar-logo p { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .sidebar-section { padding: 16px 12px 8px; }
+  .sidebar-section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #666; padding: 0 8px; margin-bottom: 6px; font-family: 'DM Mono', monospace; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #ccc; transition: all 0.15s; font-weight: 400; margin-bottom: 1px; }
+  .nav-item:hover { background: #1e1c19; color: var(--white); }
+  .nav-item.active { background: var(--accent); color: var(--white); font-weight: 500; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
+  .nav-item.active svg { opacity: 1; }
+  .sidebar-stats { margin-top: auto; border-top: 1px solid #2a2825; padding: 16px; }
+  .stat-pill { background: #1a1916; border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
+  .stat-pill-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #666; font-family: 'DM Mono', monospace; }
+  .stat-pill-value { font-size: 20px; font-weight: 600; color: var(--white); font-family: 'DM Serif Display', serif; }
+
+  /* MAIN CONTENT */
+  .page { display: none; padding: 32px; max-width: 1200px; }
+  .page.active { display: block; }
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--ink); letter-spacing: -0.5px; }
+  .page-subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .btn-primary { background: var(--ink); color: var(--white); }
+  .btn-primary:hover { background: #2a2825; }
+  .btn-accent { background: var(--accent); color: var(--white); }
+  .btn-accent:hover { background: #b04420; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+  .btn-ghost:hover { border-color: var(--ink); background: var(--paper2); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-danger { background: #fde8e8; color: var(--danger); border: 1px solid #f5c6c6; }
+  .btn-danger:hover { background: #f5c6c6; }
+
+  /* CARDS */
+  .card { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-sm { padding: 14px 16px; }
+
+  /* STAT CARDS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card.c1::before { background: var(--accent); }
+  .stat-card.c2::before { background: var(--accent2); }
+  .stat-card.c3::before { background: var(--accent3); }
+  .stat-card.c4::before { background: var(--gold); }
+  .stat-card-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+  .stat-card-value { font-family: 'DM Serif Display', serif; font-size: 36px; color: var(--ink); line-height: 1; }
+  .stat-card-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* TABLE */
+  .table-wrap { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--paper2); }
+  th { padding: 10px 16px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono', monospace; font-weight: 500; border-bottom: 1.5px solid var(--border); }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--paper2); font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--paper); }
+  .clickable-row { cursor: pointer; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .badge-stage-0 { background: #f0ede6; color: #6b6355; }
+  .badge-stage-1 { background: #fef3e2; color: #9a6200; }
+  .badge-stage-2 { background: #e8f4ff; color: #1a5a9a; }
+  .badge-stage-3 { background: #fff0e8; color: #b84800; }
+  .badge-stage-4 { background: #e8ffe8; color: #1a6632; }
+  .badge-stage-5 { background: #f0e8ff; color: #5a1a9a; }
+  .badge-beta { background: #fff8e1; color: #8a6200; border: 1px solid #f0c040; }
+  .badge-interested { background: #e8ffe8; color: #1a6632; border: 1px solid #80c880; }
+  .badge-followup { background: #ffe8e8; color: #8a1a1a; border: 1px solid #e08080; }
+
+  /* SEVERITY DOTS */
+  .sev { display: inline-flex; gap: 2px; align-items: center; }
+  .sev-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .sev-dot.filled.s1 { background: #8bc34a; }
+  .sev-dot.filled.s2 { background: #ffc107; }
+  .sev-dot.filled.s3 { background: #ff9800; }
+  .sev-dot.filled.s4 { background: #f44336; }
+  .sev-dot.filled.s5 { background: #9c27b0; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,14,12,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; padding: 28px; width: 600px; max-width: 95vw; max-height: 90vh; overflow-y: auto; border: 1.5px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-lg { width: 750px; }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 20px; }
+  .modal-close { background: var(--paper2); border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--muted); transition: all 0.15s; }
+  .modal-close:hover { background: var(--border); color: var(--ink); }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-full { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; }
+  .form-input, .form-select, .form-textarea { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--white); color: var(--ink); transition: border-color 0.15s; outline: none; }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--ink); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1.5px solid var(--paper2); }
+
+  /* PIPELINE */
+  .pipeline-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; }
+  .pipeline-col { flex: 0 0 220px; }
+  .pipeline-col-header { background: var(--ink); color: var(--white); padding: 10px 14px; border-radius: 10px 10px 0 0; }
+  .pipeline-col-title { font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+  .pipeline-col-count { font-size: 10px; opacity: 0.6; margin-top: 1px; font-family: 'DM Mono', monospace; }
+  .pipeline-col-body { background: var(--paper2); border-radius: 0 0 10px 10px; padding: 10px; min-height: 200px; border: 1.5px solid var(--border); border-top: none; }
+  .pipeline-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .pipeline-card:hover { border-color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .pipeline-card-name { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .pipeline-card-sub { font-size: 11px; color: var(--muted); }
+  .pipeline-card-tags { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+
+  /* CONTACT PROFILE */
+  .profile-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+  .profile-sidebar-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 14px; }
+  .profile-name { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 4px; }
+  .profile-location { font-size: 12px; color: var(--muted); }
+  .profile-meta { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .meta-label { color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-size: 10px; font-family: 'DM Mono', monospace; }
+  .meta-value { font-weight: 500; }
+  .divider { height: 1px; background: var(--paper2); margin: 14px 0; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 12px; font-weight: 500; }
+  .opportunity-score { font-family: 'DM Serif Display', serif; font-size: 48px; color: var(--accent); text-align: center; line-height: 1; }
+  .opp-label { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; }
+
+  /* CONVO LOG */
+  .convo-item { background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .convo-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .convo-date { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .convo-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .convo-outreach { color: var(--accent3); }
+  .convo-reply { color: var(--accent2); }
+  .convo-note { color: var(--gold); }
+  .convo-body { font-size: 13px; color: var(--ink); line-height: 1.6; }
+  .convo-body-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; margin-top: 10px; margin-bottom: 3px; }
+
+  /* PROBLEM CARDS */
+  .problem-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .problem-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .problem-title { font-size: 14px; font-weight: 600; }
+  .problem-cat { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .problem-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .problem-meta-item { font-size: 11px; color: var(--muted); }
+  .problem-meta-item strong { color: var(--ink); }
+
+  /* INSIGHTS */
+  .insight-bar { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--paper2); }
+  .insight-bar:last-child { border-bottom: none; }
+  .insight-bar-label { flex: 0 0 200px; font-size: 13px; font-weight: 500; }
+  .insight-bar-track { flex: 1; background: var(--paper2); border-radius: 4px; height: 8px; overflow: hidden; }
+  .insight-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.6s ease; }
+  .insight-bar-val { flex: 0 0 60px; text-align: right; font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+  /* FLAGS */
+  .flags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag-toggle { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--muted); transition: all 0.15s; }
+  .flag-toggle:hover { border-color: var(--ink); color: var(--ink); }
+  .flag-toggle.active-beta { background: #fff8e1; color: #8a6200; border-color: #f0c040; }
+  .flag-toggle.active-interested { background: #e8ffe8; color: #1a6632; border-color: #80c880; }
+  .flag-toggle.active-followup { background: #ffe8e8; color: #8a1a1a; border-color: #e08080; }
+  .flag-toggle.active-future-customer { background: #e8eeff; color: #1a3a8a; border-color: #8090e0; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .empty-state-sub { font-size: 13px; line-height: 1.5; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1.5px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all 0.15s; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: var(--white); padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 9999; max-width: 320px; }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* SEARCH */
+  .search-wrap { position: relative; }
+  .search-input { padding: 9px 12px 9px 36px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; background: var(--white); color: var(--ink); outline: none; width: 240px; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--ink); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+  /* BACK BUTTON */
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; margin-bottom: 20px; transition: color 0.15s; }
+  .back-btn:hover { color: var(--ink); }
+
+  /* FOLLOW-UP CARD */
+  .followup-card { background: #fff8e1; border: 1.5px solid #f0c040; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .followup-title { font-size: 12px; font-weight: 600; color: #7a5500; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; }
+  .followup-date { font-size: 13px; color: #4a3200; margin-top: 4px; }
+  .followup-note { font-size: 12px; color: #7a5500; margin-top: 4px; }
+
+  /* SCORE BAR */
+  .score-bar-wrap { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .score-bar-track { flex: 1; background: var(--paper2); border-radius: 4px; height: 6px; }
+  .score-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #8bc34a, #ffc107, var(--accent)); }
+
+  /* PROBLEM AGGREGATE CARD */
+  .agg-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; }
+  .agg-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .agg-owners { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .agg-metrics { display: flex; gap: 20px; }
+  .agg-metric { text-align: center; }
+  .agg-metric-val { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); }
+  .agg-metric-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* CATEGORY TAG */
+  .cat-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; }
+  .cat-ops { background: #fde8e0; color: #8a2800; }
+  .cat-fin { background: #e0f0e0; color: #1a5a1a; }
+  .cat-guest { background: #e0e8ff; color: #1a2a8a; }
+  .cat-maint { background: #fff8e0; color: #7a5500; }
+  .cat-tech { background: #f0e0ff; color: #4a1a8a; }
+  .cat-legal { background: #ffe0e0; color: #8a1a1a; }
+  .cat-other { background: #f0f0f0; color: #4a4a4a; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .profile-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <h1>FounderCRM</h1>
+      <p>Property Discovery</p>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <div class="nav-item active" onclick="nav('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="nav('pipeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        Pipeline
+      </div>
+      <div class="nav-item" onclick="nav('contacts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Contacts
+      </div>
+      <div class="nav-item" onclick="nav('problems')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Problems
+      </div>
+      <div class="nav-item" onclick="nav('insights')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Insights
+      </div>
+      <div class="nav-item" onclick="nav('followups')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Follow-ups
+      </div>
+    </div>
+    <div class="sidebar-stats">
+      <div class="stat-pill">
+        <div class="stat-pill-label">Contacts</div>
+        <div class="stat-pill-value" id="sb-contacts">0</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-pill-label">Problems Found</div>
+        <div class="stat-pill-value" id="sb-problems">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle">Your property owner discovery overview</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addContact')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Contact
+        </button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card c1">
+          <div class="stat-card-label">Total Contacts</div>
+          <div class="stat-card-value" id="stat-contacts">0</div>
+          <div class="stat-card-sub">Property owners tracked</div>
+        </div>
+        <div class="stat-card c2">
+          <div class="stat-card-label">Conversations</div>
+          <div class="stat-card-value" id="stat-convos">0</div>
+          <div class="stat-card-sub">Active dialogues</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="stat-card-label">Problems Found</div>
+          <div class="stat-card-value" id="stat-problems">0</div>
+          <div class="stat-card-sub">Across all owners</div>
+        </div>
+        <div class="stat-card c4">
+          <div class="stat-card-label">Validated</div>
+          <div class="stat-card-value" id="stat-validated">0</div>
+          <div class="stat-card-sub">High-severity confirmed</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="section-title">Recent Contacts</div>
+          <div id="dash-recent-contacts"><div class="empty-state" style="padding:20px"><div class="empty-state-sub">No contacts yet</div></div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Top Problems This Week</div>
+          <div id="dash-top-problems"><div class="empty-state" style="padding:20px"><div class="empty-state-sub">No problems logged yet</div></div></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px" class="card">
+        <div class="section-title">Pipeline Status</div>
+        <div id="dash-pipeline-status" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
+
+      <div style="margin-top:20px" class="card">
+        <div class="section-title">Contacts Needing Follow-up</div>
+        <div id="dash-followups"></div>
+      </div>
+    </div>
+
+    <!-- PIPELINE -->
+    <div id="page-pipeline" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Pipeline</div>
+          <div class="page-subtitle">Track contacts through your discovery journey</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addContact')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Contact
+        </button>
+      </div>
+      <div id="pipeline-board" class="pipeline-board"></div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div id="page-contacts" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Contacts</div>
+          <div class="page-subtitle">All property owners in your research network</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div class="search-wrap">
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="search-input" placeholder="Search contacts..." oninput="filterContacts(this.value)">
+          </div>
+          <button class="btn btn-primary" onclick="openModal('addContact')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Contact
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Location</th>
+              <th>Stage</th>
+              <th>Flags</th>
+              <th>Opportunity</th>
+              <th>Follow-up</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="contacts-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONTACT PROFILE -->
+    <div id="page-profile" class="page">
+      <div class="back-btn" onclick="nav('contacts')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Contacts
+      </div>
+      <div id="profile-content"></div>
+    </div>
+
+    <!-- PROBLEMS -->
+    <div id="page-problems" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Problems</div>
+          <div class="page-subtitle">All pain points discovered across your conversations</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addProblem')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log Problem
+        </button>
+      </div>
+      <div id="problems-list"></div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="page-insights" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Insights</div>
+          <div class="page-subtitle">Problem aggregation and demand signals</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="card">
+          <div class="section-title">Most Common Problems</div>
+          <div id="insight-common"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Highest Severity</div>
+          <div id="insight-severity"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="card">
+          <div class="section-title">Willingness to Pay Signal</div>
+          <div id="insight-wtp"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Beta User Pool</div>
+          <div id="insight-beta"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Problem Aggregation — All Clusters</div>
+        <div id="insight-aggregate"></div>
+      </div>
+    </div>
+
+    <!-- FOLLOW-UPS -->
+    <div id="page-followups" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Follow-ups</div>
+          <div class="page-subtitle">Contacts scheduled for re-engagement</div>
+        </div>
+      </div>
+      <div id="followups-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- ADD CONTACT MODAL -->
+<div id="modal-addContact" class="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Add Property Owner</div>
+      <button class="modal-close" onclick="closeModal('addContact')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-input" id="c-name" placeholder="Jane Smith">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="text" class="form-input" id="c-email" placeholder="jane@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="text" class="form-input" id="c-phone" placeholder="+1 555 000 0000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Property Type</label>
+        <select class="form-select" id="c-proptype">
+          <option value="Airbnb Host">Airbnb Host</option>
+          <option value="Short-term Rental">Short-term Rental</option>
+          <option value="Long-term Landlord">Long-term Landlord</option>
+          <option value="Property Manager">Property Manager</option>
+          <option value="Mixed Portfolio">Mixed Portfolio</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Portfolio Size</label>
+        <select class="form-select" id="c-portfolio">
+          <option value="1 property">1 property</option>
+          <option value="2–5 properties">2–5 properties</option>
+          <option value="6–20 properties">6–20 properties</option>
+          <option value="20+ properties">20+ properties</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="c-location" placeholder="City, State">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pipeline Stage</label>
+        <select class="form-select" id="c-stage">
+          <option value="0">Property Identified</option>
+          <option value="1">Outreach Sent</option>
+          <option value="2">Conversation Started</option>
+          <option value="3">Problem Identified</option>
+          <option value="4">Problem Validation</option>
+          <option value="5">Future Opportunity</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">How Found</label>
+        <input type="text" class="form-input" id="c-source" placeholder="Airbnb listing, LinkedIn, referral...">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="c-notes" placeholder="Any initial observations..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Follow-up Date</label>
+        <input type="date" class="form-input" id="c-followup-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Follow-up Reason</label>
+        <input type="text" class="form-input" id="c-followup-reason" placeholder="Check if they replied...">
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="section-title" style="margin-bottom:8px;">Flags</div>
+      <div class="flags-wrap">
+        <div class="flag-toggle" id="flag-beta" onclick="toggleFlag('beta')">🔬 Potential Beta User</div>
+        <div class="flag-toggle" id="flag-interested" onclick="toggleFlag('interested')">💡 Interested in Solution</div>
+        <div class="flag-toggle" id="flag-followup" onclick="toggleFlag('followup')">🔔 Follow-up Required</div>
+        <div class="flag-toggle" id="flag-future-customer" onclick="toggleFlag('future-customer')">💰 Future Customer</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addContact')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact()">Save Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CONVERSATION MODAL -->
+<div id="modal-addConvo" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Log Conversation</div>
+      <button class="modal-close" onclick="closeModal('addConvo')">✕</button>
+    </div>
+    <input type="hidden" id="cv-contact-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="cv-type">
+          <option value="outreach">Outreach Sent</option>
+          <option value="reply">Reply Received</option>
+          <option value="note">Note / Observation</option>
+          <option value="call">Call / Meeting</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="cv-date">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Message / Summary</label>
+        <textarea class="form-textarea" id="cv-message" placeholder="Paste outreach message or summarise the reply..."></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Conversation Notes</label>
+        <textarea class="form-textarea" id="cv-notes" placeholder="Key insights from this interaction..."></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Reply Summary</label>
+        <textarea class="form-textarea" id="cv-reply" placeholder="What did they say in response?" style="min-height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addConvo')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveConvo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PROBLEM MODAL -->
+<div id="modal-addProblem" class="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Log Problem</div>
+      <button class="modal-close" onclick="closeModal('addProblem')">✕</button>
+    </div>
+    <input type="hidden" id="p-contact-id">
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label class="form-label">Problem Title *</label>
+        <input type="text" class="form-input" id="p-title" placeholder="e.g. Cleaning coordination chaos">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Problem Description</label>
+        <textarea class="form-textarea" id="p-desc" placeholder="Describe the problem in detail..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="p-category">
+          <option value="Operations">Operations</option>
+          <option value="Finance">Finance</option>
+          <option value="Guest Experience">Guest Experience</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Technology">Technology</option>
+          <option value="Legal / Compliance">Legal / Compliance</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Severity (1–5)</label>
+        <select class="form-select" id="p-severity">
+          <option value="1">1 — Minor inconvenience</option>
+          <option value="2">2 — Regular frustration</option>
+          <option value="3">3 — Significant pain</option>
+          <option value="4">4 — Major blocker</option>
+          <option value="5">5 — Business-critical</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Frequency</label>
+        <select class="form-select" id="p-frequency">
+          <option value="Rarely">Rarely (once a year)</option>
+          <option value="Occasionally">Occasionally (monthly)</option>
+          <option value="Regularly">Regularly (weekly)</option>
+          <option value="Constantly">Constantly (daily)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Willingness to Pay</label>
+        <select class="form-select" id="p-wtp">
+          <option value="None">None — wouldn't pay</option>
+          <option value="Low">Low — &lt;$20/mo</option>
+          <option value="Medium">Medium — $20–100/mo</option>
+          <option value="High">High — $100–500/mo</option>
+          <option value="Very High">Very High — $500+/mo</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Current Workaround</label>
+        <textarea class="form-textarea" id="p-workaround" placeholder="How do they handle this today?" style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Owner Quote (optional)</label>
+        <input type="text" class="form-input" id="p-quote" placeholder="Direct words from the owner...">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addProblem')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProblem()">Save Problem</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CONTACT MODAL -->
+<div id="modal-editContact" class="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">Edit Contact</div>
+      <button class="modal-close" onclick="closeModal('editContact')">✕</button>
+    </div>
+    <input type="hidden" id="ec-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-input" id="ec-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="text" class="form-input" id="ec-email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="text" class="form-input" id="ec-phone">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Property Type</label>
+        <select class="form-select" id="ec-proptype">
+          <option value="Airbnb Host">Airbnb Host</option>
+          <option value="Short-term Rental">Short-term Rental</option>
+          <option value="Long-term Landlord">Long-term Landlord</option>
+          <option value="Property Manager">Property Manager</option>
+          <option value="Mixed Portfolio">Mixed Portfolio</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Portfolio Size</label>
+        <select class="form-select" id="ec-portfolio">
+          <option value="1 property">1 property</option>
+          <option value="2–5 properties">2–5 properties</option>
+          <option value="6–20 properties">6–20 properties</option>
+          <option value="20+ properties">20+ properties</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Location</label>
+        <input type="text" class="form-input" id="ec-location">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pipeline Stage</label>
+        <select class="form-select" id="ec-stage">
+          <option value="0">Property Identified</option>
+          <option value="1">Outreach Sent</option>
+          <option value="2">Conversation Started</option>
+          <option value="3">Problem Identified</option>
+          <option value="4">Problem Validation</option>
+          <option value="5">Future Opportunity</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">How Found</label>
+        <input type="text" class="form-input" id="ec-source">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Opportunity Score (0–10)</label>
+        <input type="number" class="form-input" id="ec-oppscore" min="0" max="10" placeholder="0–10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Follow-up Date</label>
+        <input type="date" class="form-input" id="ec-followup-date">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Follow-up Reason</label>
+        <input type="text" class="form-input" id="ec-followup-reason">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="ec-notes"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="section-title" style="margin-bottom:8px;">Flags</div>
+      <div class="flags-wrap">
+        <div class="flag-toggle" id="ec-flag-beta" onclick="toggleEditFlag('beta')">🔬 Potential Beta User</div>
+        <div class="flag-toggle" id="ec-flag-interested" onclick="toggleEditFlag('interested')">💡 Interested in Solution</div>
+        <div class="flag-toggle" id="ec-flag-followup" onclick="toggleEditFlag('followup')">🔔 Follow-up Required</div>
+        <div class="flag-toggle" id="ec-flag-future-customer" onclick="toggleEditFlag('future-customer')">💰 Future Customer</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('editContact')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateContact()">Update</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===================== DATA STORE =====================
+const DB_KEY = 'foundcrm_v2';
+let db = { contacts: [], conversations: [], problems: [] };
+
+function loadDB() {
+  try { const s = localStorage.getItem(DB_KEY); if (s) db = JSON.parse(s); } catch(e) {}
+}
+function saveDB() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ===================== NAV =====================
+let currentPage = 'dashboard';
+function nav(page, contactId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + (page === 'profile' ? 'profile' : page)).classList.add('active');
+  if (page !== 'profile') {
+    document.querySelectorAll('.nav-item').forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(`'${page}'`)) n.classList.add('active'); });
+  }
+  currentPage = page;
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'pipeline') renderPipeline();
+  if (page === 'contacts') renderContacts();
+  if (page === 'problems') renderProblems();
+  if (page === 'insights') renderInsights();
+  if (page === 'followups') renderFollowups();
+  if (page === 'profile' && contactId) renderProfile(contactId);
+  updateSidebar();
+}
+
+// ===================== TOAST =====================
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===================== MODALS =====================
+function openModal(id) {
+  if (id === 'addContact') resetAddContactForm();
+  if (id === 'addProblem') { document.getElementById('p-contact-id').value = ''; }
+  if (id === 'addConvo') {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('cv-date').value = today;
+    document.getElementById('cv-contact-id').value = '';
+  }
+  document.getElementById('modal-' + id).classList.add('open');
+}
+function openModalFor(id, contactId) {
+  openModal(id);
+  if (id === 'addProblem') document.getElementById('p-contact-id').value = contactId;
+  if (id === 'addConvo') document.getElementById('cv-contact-id').value = contactId;
+}
+function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+// ===================== CONTACT FLAGS =====================
+let addFlags = { beta: false, interested: false, followup: false, 'future-customer': false };
+let editFlags = { beta: false, interested: false, followup: false, 'future-customer': false };
+
+function resetAddContactForm() {
+  ['c-name','c-email','c-phone','c-location','c-notes','c-source','c-followup-reason'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('c-followup-date').value = '';
+  addFlags = { beta: false, interested: false, followup: false, 'future-customer': false };
+  ['flag-beta','flag-interested','flag-followup','flag-future-customer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'flag-toggle';
+  });
+}
+
+function toggleFlag(flag) {
+  addFlags[flag] = !addFlags[flag];
+  const el = document.getElementById('flag-' + flag);
+  if (addFlags[flag]) { el.classList.add('active-' + flag); }
+  else { el.className = 'flag-toggle'; }
+}
+
+function toggleEditFlag(flag) {
+  editFlags[flag] = !editFlags[flag];
+  const el = document.getElementById('ec-flag-' + flag);
+  if (editFlags[flag]) { el.classList.add('active-' + flag); }
+  else { el.className = 'flag-toggle'; }
+}
+
+function setEditFlags(flags) {
+  editFlags = {...flags};
+  ['beta','interested','followup','future-customer'].forEach(f => {
+    const el = document.getElementById('ec-flag-' + f);
+    if (!el) return;
+    el.className = 'flag-toggle';
+    if (editFlags[f]) el.classList.add('active-' + f);
+  });
+}
+
+// ===================== SAVE CONTACT =====================
+function saveContact() {
+  const name = document.getElementById('c-name').value.trim();
+  if (!name) { toast('Please enter a name'); return; }
+  const contact = {
+    id: uid(), name,
+    email: document.getElementById('c-email').value.trim(),
+    phone: document.getElementById('c-phone').value.trim(),
+    propType: document.getElementById('c-proptype').value,
+    portfolio: document.getElementById('c-portfolio').value,
+    location: document.getElementById('c-location').value.trim(),
+    stage: parseInt(document.getElementById('c-stage').value),
+    source: document.getElementById('c-source').value.trim(),
+    notes: document.getElementById('c-notes').value.trim(),
+    followupDate: document.getElementById('c-followup-date').value,
+    followupReason: document.getElementById('c-followup-reason').value.trim(),
+    flags: {...addFlags},
+    oppScore: 0,
+    createdAt: new Date().toISOString()
+  };
+  db.contacts.push(contact);
+  saveDB();
+  closeModal('addContact');
+  toast('Contact saved!');
+  if (currentPage === 'dashboard') renderDashboard();
+  if (currentPage === 'contacts') renderContacts();
+  if (currentPage === 'pipeline') renderPipeline();
+  updateSidebar();
+}
+
+// ===================== EDIT CONTACT =====================
+function openEditContact(id) {
+  const c = db.contacts.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('ec-id').value = c.id;
+  document.getElementById('ec-name').value = c.name || '';
+  document.getElementById('ec-email').value = c.email || '';
+  document.getElementById('ec-phone').value = c.phone || '';
+  document.getElementById('ec-proptype').value = c.propType || 'Airbnb Host';
+  document.getElementById('ec-portfolio').value = c.portfolio || '1 property';
+  document.getElementById('ec-location').value = c.location || '';
+  document.getElementById('ec-stage').value = c.stage || 0;
+  document.getElementById('ec-source').value = c.source || '';
+  document.getElementById('ec-oppscore').value = c.oppScore || 0;
+  document.getElementById('ec-notes').value = c.notes || '';
+  document.getElementById('ec-followup-date').value = c.followupDate || '';
+  document.getElementById('ec-followup-reason').value = c.followupReason || '';
+  setEditFlags(c.flags || {});
+  document.getElementById('modal-editContact').classList.add('open');
+}
+
+function updateContact() {
+  const id = document.getElementById('ec-id').value;
+  const idx = db.contacts.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  db.contacts[idx] = {
+    ...db.contacts[idx],
+    name: document.getElementById('ec-name').value.trim(),
+    email: document.getElementById('ec-email').value.trim(),
+    phone: document.getElementById('ec-phone').value.trim(),
+    propType: document.getElementById('ec-proptype').value,
+    portfolio: document.getElementById('ec-portfolio').value,
+    location: document.getElementById('ec-location').value.trim(),
+    stage: parseInt(document.getElementById('ec-stage').value),
+    source: document.getElementById('ec-source').value.trim(),
+    oppScore: parseFloat(document.getElementById('ec-oppscore').value) || 0,
+    notes: document.getElementById('ec-notes').value.trim(),
+    followupDate: document.getElementById('ec-followup-date').value,
+    followupReason: document.getElementById('ec-followup-reason').value.trim(),
+    flags: {...editFlags},
+    updatedAt: new Date().toISOString()
+  };
+  saveDB();
+  closeModal('editContact');
+  toast('Contact updated!');
+  renderProfile(id);
+  updateSidebar();
+}
+
+function deleteContact(id) {
+  if (!confirm('Delete this contact and all their data?')) return;
+  db.contacts = db.contacts.filter(c => c.id !== id);
+  db.conversations = db.conversations.filter(c => c.contactId !== id);
+  db.problems = db.problems.filter(p => p.contactId !== id);
+  saveDB();
+  toast('Contact deleted');
+  nav('contacts');
+}
+
+// ===================== SAVE CONVO =====================
+function saveConvo() {
+  const contactId = document.getElementById('cv-contact-id').value;
+  if (!contactId) { toast('No contact selected'); return; }
+  const convo = {
+    id: uid(), contactId,
+    type: document.getElementById('cv-type').value,
+    date: document.getElementById('cv-date').value || new Date().toISOString().split('T')[0],
+    message: document.getElementById('cv-message').value.trim(),
+    notes: document.getElementById('cv-notes').value.trim(),
+    reply: document.getElementById('cv-reply').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  db.conversations.push(convo);
+  // Auto-advance stage
+  const c = db.contacts.find(x => x.id === contactId);
+  if (c && convo.type === 'outreach' && c.stage < 1) { c.stage = 1; }
+  if (c && (convo.type === 'reply' || convo.type === 'call') && c.stage < 2) { c.stage = 2; }
+  saveDB();
+  closeModal('addConvo');
+  toast('Conversation logged!');
+  renderProfile(contactId);
+  updateSidebar();
+  // Clear
+  ['cv-message','cv-notes','cv-reply'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ===================== SAVE PROBLEM =====================
+function saveProblem() {
+  const title = document.getElementById('p-title').value.trim();
+  if (!title) { toast('Please enter a problem title'); return; }
+  const problem = {
+    id: uid(),
+    contactId: document.getElementById('p-contact-id').value || null,
+    title, 
+    desc: document.getElementById('p-desc').value.trim(),
+    category: document.getElementById('p-category').value,
+    severity: parseInt(document.getElementById('p-severity').value),
+    frequency: document.getElementById('p-frequency').value,
+    wtp: document.getElementById('p-wtp').value,
+    workaround: document.getElementById('p-workaround').value.trim(),
+    quote: document.getElementById('p-quote').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  db.problems.push(problem);
+  // Auto-advance stage
+  if (problem.contactId) {
+    const c = db.contacts.find(x => x.id === problem.contactId);
+    if (c && c.stage < 3) { c.stage = 3; }
+  }
+  saveDB();
+  closeModal('addProblem');
+  toast('Problem logged!');
+  if (problem.contactId) renderProfile(problem.contactId);
+  if (currentPage === 'problems') renderProblems();
+  if (currentPage === 'insights') renderInsights();
+  updateSidebar();
+  ['p-title','p-desc','p-workaround','p-quote'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ===================== HELPERS =====================
+const STAGES = ['Property Identified','Outreach Sent','Conversation Started','Problem Identified','Problem Validation','Future Opportunity'];
+const CAT_CLASS = { 'Operations':'cat-ops','Finance':'cat-fin','Guest Experience':'cat-guest','Maintenance':'cat-maint','Technology':'cat-tech','Legal / Compliance':'cat-legal','Other':'cat-other' };
+const WTP_ORDER = { 'None':0,'Low':1,'Medium':2,'High':3,'Very High':4,'Unknown':-1 };
+
+function sevDots(s) {
+  let h = '';
+  for (let i=1;i<=5;i++) h += `<div class="sev-dot ${i<=s?'filled s'+s:''}"></div>`;
+  return `<div class="sev">${h}</div>`;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch(e){return d;}
+}
+
+function getContactProblems(id) { return db.problems.filter(p => p.contactId === id); }
+function getContactConvos(id) { return db.conversations.filter(c => c.contactId === id).sort((a,b) => b.date.localeCompare(a.date)); }
+
+function calcOppScore(contact) {
+  if (contact.oppScore && contact.oppScore > 0) return contact.oppScore;
+  let score = 0;
+  const probs = getContactProblems(contact.id);
+  if (probs.length) score += Math.min(3, probs.length);
+  const avgSev = probs.length ? probs.reduce((a,p) => a+p.severity,0)/probs.length : 0;
+  score += avgSev;
+  const convos = getContactConvos(contact.id);
+  if (convos.length) score += Math.min(2, convos.length * 0.5);
+  if (contact.flags?.interested) score += 1.5;
+  if (contact.flags?.beta) score += 1;
+  const wtpMax = probs.reduce((max,p) => Math.max(max, WTP_ORDER[p.wtp]||0), 0);
+  score += wtpMax * 0.5;
+  return Math.min(10, Math.round(score * 10) / 10);
+}
+
+function flagBadges(flags) {
+  if (!flags) return '';
+  let h = '';
+  if (flags.beta) h += `<span class="badge badge-beta">🔬 Beta</span>`;
+  if (flags.interested) h += `<span class="badge badge-interested">💡 Interested</span>`;
+  if (flags.followup) h += `<span class="badge badge-followup">🔔 Follow-up</span>`;
+  if (flags['future-customer']) h += `<span class="badge" style="background:#e8eeff;color:#1a3a8a;border:1px solid #8090e0">💰 Future Customer</span>`;
+  return h;
+}
+
+// ===================== UPDATE SIDEBAR =====================
+function updateSidebar() {
+  document.getElementById('sb-contacts').textContent = db.contacts.length;
+  document.getElementById('sb-problems').textContent = db.problems.length;
+}
+
+// ===================== RENDER DASHBOARD =====================
+function renderDashboard() {
+  const totalContacts = db.contacts.length;
+  const conversations = db.conversations.length;
+  const problems = db.problems.length;
+  const validated = db.problems.filter(p => p.severity >= 4).length;
+  document.getElementById('stat-contacts').textContent = totalContacts;
+  document.getElementById('stat-convos').textContent = conversations;
+  document.getElementById('stat-problems').textContent = problems;
+  document.getElementById('stat-validated').textContent = validated;
+
+  // Recent contacts
+  const recent = [...db.contacts].sort((a,b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
+  const rcEl = document.getElementById('dash-recent-contacts');
+  if (!recent.length) { rcEl.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-state-sub">No contacts yet</div></div>'; }
+  else {
+    rcEl.innerHTML = recent.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--paper2)">
+        <div>
+          <div style="font-size:13px;font-weight:500;cursor:pointer" onclick="nav('profile','${c.id}')">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${c.propType} · ${c.location || 'No location'}</div>
+        </div>
+        <span class="badge badge-stage-${c.stage}">${STAGES[c.stage]}</span>
+      </div>
+    `).join('');
+  }
+
+  // Top problems
+  const topProbs = getAggregatedProblems().slice(0, 5);
+  const tpEl = document.getElementById('dash-top-problems');
+  if (!topProbs.length) { tpEl.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-state-sub">No problems logged yet</div></div>'; }
+  else {
+    tpEl.innerHTML = topProbs.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--paper2)">
+        <div>
+          <div style="font-size:13px;font-weight:500">${p.title}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.count} owner${p.count>1?'s':''} · avg sev ${p.avgSev.toFixed(1)}</div>
+        </div>
+        ${sevDots(Math.round(p.avgSev))}
+      </div>
+    `).join('');
+  }
+
+  // Pipeline status
+  const pipeEl = document.getElementById('dash-pipeline-status');
+  pipeEl.innerHTML = STAGES.map((s,i) => {
+    const count = db.contacts.filter(c=>c.stage===i).length;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--white);border:1.5px solid var(--border);border-radius:8px;font-size:12px">
+      <span class="badge badge-stage-${i}">${s}</span>
+      <span style="font-weight:700;font-family:'DM Mono',monospace">${count}</span>
+    </div>`;
+  }).join('');
+
+  // Followups
+  const today = new Date().toISOString().split('T')[0];
+  const fu = db.contacts.filter(c => c.followupDate && c.followupDate <= today).slice(0,5);
+  const fuEl = document.getElementById('dash-followups');
+  if (!fu.length) { fuEl.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:12px 0">No overdue follow-ups 🎉</div>'; }
+  else {
+    fuEl.innerHTML = fu.map(c => `
+      <div class="followup-card" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="followup-title">Follow-up due</div>
+            <div class="followup-date" style="cursor:pointer;font-weight:600" onclick="nav('profile','${c.id}')">${c.name}</div>
+            <div class="followup-note">${c.followupReason || 'No reason given'} · Due: ${formatDate(c.followupDate)}</div>
+          </div>
+          <button class="btn btn-sm btn-ghost" onclick="nav('profile','${c.id}')">View →</button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ===================== RENDER PIPELINE =====================
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = STAGES.map((s,i) => {
+    const contacts = db.contacts.filter(c => c.stage === i);
+    return `
+      <div class="pipeline-col">
+        <div class="pipeline-col-header">
+          <div class="pipeline-col-title">${s}</div>
+          <div class="pipeline-col-count">${contacts.length} contact${contacts.length!==1?'s':''}</div>
+        </div>
+        <div class="pipeline-col-body">
+          ${contacts.length ? contacts.map(c => {
+            const probs = getContactProblems(c.id);
+            const score = calcOppScore(c);
+            return `
+              <div class="pipeline-card" onclick="nav('profile','${c.id}')">
+                <div class="pipeline-card-name">${c.name}</div>
+                <div class="pipeline-card-sub">${c.propType}</div>
+                <div class="pipeline-card-sub">${c.location || ''}</div>
+                ${probs.length ? `<div class="pipeline-card-sub" style="margin-top:4px;color:var(--accent)">⚠ ${probs.length} problem${probs.length>1?'s':''}</div>` : ''}
+                <div class="pipeline-card-tags" style="margin-top:6px">
+                  ${c.flags?.beta?'<span class="badge badge-beta" style="font-size:9px;padding:2px 6px">Beta</span>':''}
+                  ${c.flags?.interested?'<span class="badge badge-interested" style="font-size:9px;padding:2px 6px">Interested</span>':''}
+                  ${score>6?`<span style="font-size:9px;font-family:'DM Mono',monospace;color:var(--accent2);font-weight:600">⭐ ${score}/10</span>`:''}
+                </div>
+              </div>
+            `;
+          }).join('') : `<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 10px">No contacts</div>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===================== RENDER CONTACTS =====================
+function renderContacts(filter = '') {
+  const tbody = document.getElementById('contacts-tbody');
+  const filtered = db.contacts.filter(c => !filter || c.name.toLowerCase().includes(filter.toLowerCase()) || (c.location||'').toLowerCase().includes(filter.toLowerCase()) || (c.propType||'').toLowerCase().includes(filter.toLowerCase()));
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-title">No contacts yet</div><div class="empty-state-sub">Add your first property owner to get started</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => {
+    const score = calcOppScore(c);
+    const today = new Date().toISOString().split('T')[0];
+    const overdue = c.followupDate && c.followupDate <= today;
+    return `
+      <tr class="clickable-row" onclick="nav('profile','${c.id}')">
+        <td><div style="font-weight:500">${c.name}</div><div style="font-size:11px;color:var(--muted)">${c.email||''}</div></td>
+        <td>${c.propType}</td>
+        <td>${c.location||'—'}</td>
+        <td><span class="badge badge-stage-${c.stage}">${STAGES[c.stage]}</span></td>
+        <td><div style="display:flex;gap:4px;flex-wrap:wrap">${flagBadges(c.flags)}</div></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-family:'DM Mono',monospace;font-weight:600;font-size:13px;color:${score>7?'var(--accent2)':score>4?'var(--gold)':'var(--muted)'}">${score}/10</span>
+          </div>
+        </td>
+        <td><span style="font-size:12px;color:${overdue?'var(--danger)':'var(--muted)'}">${overdue?'⚠ ':''}${c.followupDate?formatDate(c.followupDate):'—'}</span></td>
+        <td onclick="event.stopPropagation()">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-ghost" onclick="openEditContact('${c.id}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteContact('${c.id}')">Del</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterContacts(val) { renderContacts(val); }
+
+// ===================== RENDER PROFILE =====================
+function renderProfile(id) {
+  const c = db.contacts.find(x => x.id === id);
+  if (!c) { nav('contacts'); return; }
+  const convos = getContactConvos(id);
+  const probs = getContactProblems(id);
+  const score = calcOppScore(c);
+  const today = new Date().toISOString().split('T')[0];
+  const overdue = c.followupDate && c.followupDate <= today;
+
+  document.getElementById('profile-content').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div class="page-title">${c.name}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">${c.propType} · ${c.location||'No location'} · ${c.portfolio}</div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">${flagBadges(c.flags)}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="openModalFor('addConvo','${id}')">+ Log Convo</button>
+        <button class="btn btn-ghost" onclick="openModalFor('addProblem','${id}')">+ Log Problem</button>
+        <button class="btn btn-ghost" onclick="openEditContact('${id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteContact('${id}')">Delete</button>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <!-- Contact Info -->
+        <div class="profile-sidebar-card">
+          <div class="section-title">Contact Info</div>
+          <div class="profile-meta">
+            ${c.email?`<div class="meta-row"><span class="meta-label">Email</span><span class="meta-value">${c.email}</span></div>`:''}
+            ${c.phone?`<div class="meta-row"><span class="meta-label">Phone</span><span class="meta-value">${c.phone}</span></div>`:''}
+            <div class="meta-row"><span class="meta-label">Stage</span><span class="badge badge-stage-${c.stage}">${STAGES[c.stage]}</span></div>
+            <div class="meta-row"><span class="meta-label">Portfolio</span><span class="meta-value">${c.portfolio}</span></div>
+            ${c.source?`<div class="meta-row"><span class="meta-label">Found via</span><span class="meta-value" style="font-size:12px">${c.source}</span></div>`:''}
+            <div class="meta-row"><span class="meta-label">Added</span><span class="meta-value" style="font-size:12px">${formatDate(c.createdAt)}</span></div>
+          </div>
+        </div>
+
+        <!-- Opportunity Score -->
+        <div class="profile-sidebar-card" style="text-align:center">
+          <div class="section-title">Opportunity Score</div>
+          <div class="opportunity-score" style="color:${score>7?'var(--accent2)':score>4?'var(--gold)':'var(--muted)'}">${score}</div>
+          <div class="opp-label">out of 10</div>
+          <div class="score-bar-wrap"><div class="score-bar-track"><div class="score-bar-fill" style="width:${score*10}%"></div></div></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">Based on problems, severity, engagement</div>
+        </div>
+
+        <!-- Follow-up -->
+        <div class="profile-sidebar-card">
+          <div class="section-title">Follow-up</div>
+          ${c.followupDate ? `
+            <div class="${overdue?'followup-card':''}">
+              <div style="font-size:13px;font-weight:600;color:${overdue?'var(--danger)':'var(--ink)'}">
+                ${overdue?'⚠ Overdue: ':''}${formatDate(c.followupDate)}
+              </div>
+              ${c.followupReason?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${c.followupReason}</div>`:''}
+            </div>
+          ` : `<div style="font-size:12px;color:var(--muted)">No follow-up scheduled</div>`}
+          <button class="btn btn-sm btn-ghost" style="margin-top:10px;width:100%" onclick="openEditContact('${id}')">Set Follow-up</button>
+        </div>
+
+        <!-- Notes -->
+        ${c.notes ? `
+          <div class="profile-sidebar-card">
+            <div class="section-title">Notes</div>
+            <div style="font-size:13px;color:var(--ink);line-height:1.6">${c.notes.replace(/\n/g,'<br>')}</div>
+          </div>
+        ` : ''}
+      </div>
+
+      <div>
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" onclick="switchProfileTab(this,'tab-convos-${id}')">Conversations (${convos.length})</div>
+          <div class="tab" onclick="switchProfileTab(this,'tab-problems-${id}')">Problems (${probs.length})</div>
+        </div>
+
+        <!-- Conversations Tab -->
+        <div id="tab-convos-${id}">
+          ${convos.length ? convos.map(cv => `
+            <div class="convo-item">
+              <div class="convo-header">
+                <span class="convo-type convo-${cv.type}">${cv.type.toUpperCase()}</span>
+                <span class="convo-date">${formatDate(cv.date)}</span>
+              </div>
+              ${cv.message?`<div class="convo-body-label">Message</div><div class="convo-body">${cv.message.replace(/\n/g,'<br>')}</div>`:''}
+              ${cv.reply?`<div class="convo-body-label">Reply</div><div class="convo-body" style="color:var(--accent2)">${cv.reply.replace(/\n/g,'<br>')}</div>`:''}
+              ${cv.notes?`<div class="convo-body-label">Notes</div><div class="convo-body" style="color:var(--muted)">${cv.notes.replace(/\n/g,'<br>')}</div>`:''}
+            </div>
+          `).join('') : `
+            <div class="empty-state">
+              <div class="empty-state-icon">💬</div>
+              <div class="empty-state-title">No conversations yet</div>
+              <div class="empty-state-sub">Log your first message or call with this owner</div>
+            </div>
+          `}
+          <button class="btn btn-ghost" style="margin-top:10px" onclick="openModalFor('addConvo','${id}')">+ Log Conversation</button>
+        </div>
+
+        <!-- Problems Tab -->
+        <div id="tab-problems-${id}" style="display:none">
+          ${probs.length ? probs.map(p => `
+            <div class="problem-card">
+              <div class="problem-card-header">
+                <div>
+                  <div class="problem-title">${p.title}</div>
+                  <div class="problem-cat">${p.category}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                  ${sevDots(p.severity)}
+                  <span class="cat-tag ${CAT_CLASS[p.category]||'cat-other'}">${p.category}</span>
+                </div>
+              </div>
+              ${p.desc?`<div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">${p.desc}</div>`:''}
+              ${p.quote?`<div style="font-size:12px;color:var(--accent3);font-style:italic;margin-top:8px;padding:8px;background:var(--paper);border-radius:6px;border-left:3px solid var(--accent3)">"${p.quote}"</div>`:''}
+              <div class="problem-meta">
+                <div class="problem-meta-item"><strong>Severity:</strong> ${p.severity}/5</div>
+                <div class="problem-meta-item"><strong>Frequency:</strong> ${p.frequency}</div>
+                <div class="problem-meta-item"><strong>WTP:</strong> ${p.wtp}</div>
+                ${p.workaround?`<div class="problem-meta-item" style="flex:1 0 100%"><strong>Workaround:</strong> ${p.workaround}</div>`:''}
+              </div>
+            </div>
+          `).join('') : `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <div class="empty-state-title">No problems logged</div>
+              <div class="empty-state-sub">Add problems you've uncovered from conversations</div>
+            </div>
+          `}
+          <button class="btn btn-ghost" style="margin-top:10px" onclick="openModalFor('addProblem','${id}')">+ Log Problem</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function switchProfileTab(el, tabId) {
+  const parent = el.closest('.tabs');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const profileContent = document.getElementById('profile-content');
+  // hide all tab content divs in this profile
+  profileContent.querySelectorAll('[id^="tab-"]').forEach(d => d.style.display = 'none');
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = 'block';
+}
+
+// ===================== RENDER PROBLEMS =====================
+function renderProblems() {
+  const el = document.getElementById('problems-list');
+  if (!db.problems.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">No problems logged yet</div><div class="empty-state-sub">Log problems from contact profiles or click "Log Problem"</div></div>`;
+    return;
+  }
+  const sorted = [...db.problems].sort((a,b) => b.severity - a.severity);
+  el.innerHTML = sorted.map(p => {
+    const contact = p.contactId ? db.contacts.find(c => c.id === p.contactId) : null;
+    return `
+      <div class="problem-card">
+        <div class="problem-card-header">
+          <div>
+            <div class="problem-title">${p.title}</div>
+            <div class="problem-cat">${p.category} ${contact?`· <span style="cursor:pointer;color:var(--accent3)" onclick="nav('profile','${contact.id}')">${contact.name}</span>`:''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            ${sevDots(p.severity)}
+            <span class="cat-tag ${CAT_CLASS[p.category]||'cat-other'}">${p.category}</span>
+          </div>
+        </div>
+        ${p.desc?`<div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">${p.desc}</div>`:''}
+        ${p.quote?`<div style="font-size:12px;color:var(--accent3);font-style:italic;margin-top:8px;padding:8px;background:var(--paper);border-radius:6px;border-left:3px solid var(--accent3)">"${p.quote}"</div>`:''}
+        <div class="problem-meta">
+          <div class="problem-meta-item"><strong>Severity:</strong> ${p.severity}/5</div>
+          <div class="problem-meta-item"><strong>Frequency:</strong> ${p.frequency}</div>
+          <div class="problem-meta-item"><strong>WTP:</strong> ${p.wtp}</div>
+          <div class="problem-meta-item"><strong>Date:</strong> ${formatDate(p.createdAt)}</div>
+          ${p.workaround?`<div class="problem-meta-item" style="flex:1 0 100%"><strong>Workaround:</strong> ${p.workaround}</div>`:''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===================== PROBLEM AGGREGATION =====================
+function getAggregatedProblems() {
+  const clusters = {};
+  db.problems.forEach(p => {
+    const key = p.title.toLowerCase().trim();
+    if (!clusters[key]) clusters[key] = { title: p.title, category: p.category, count: 0, totalSev: 0, wtpScores: [], problems: [] };
+    clusters[key].count++;
+    clusters[key].totalSev += p.severity;
+    clusters[key].wtpScores.push(WTP_ORDER[p.wtp] >= 0 ? WTP_ORDER[p.wtp] : 0);
+    clusters[key].problems.push(p);
+  });
+  return Object.values(clusters).map(c => ({
+    ...c,
+    avgSev: c.count ? c.totalSev / c.count : 0,
+    avgWtp: c.wtpScores.length ? c.wtpScores.reduce((a,b)=>a+b,0)/c.wtpScores.length : 0
+  })).sort((a,b) => b.count - a.count || b.avgSev - a.avgSev);
+}
+
+// ===================== RENDER INSIGHTS =====================
+function renderInsights() {
+  const agg = getAggregatedProblems();
+  const maxCount = Math.max(1, ...agg.map(a=>a.count));
+  const maxSev = 5;
+  const maxWtp = 4;
+
+  // Most common
+  const commonEl = document.getElementById('insight-common');
+  commonEl.innerHTML = agg.slice(0,8).map(p => `
+    <div class="insight-bar">
+      <div class="insight-bar-label">${p.title}</div>
+      <div class="insight-bar-track"><div class="insight-bar-fill" style="width:${p.count/maxCount*100}%;background:var(--accent3)"></div></div>
+      <div class="insight-bar-val">${p.count} owner${p.count>1?'s':''}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px 0">No data yet</div>';
+
+  // Highest severity
+  const sevArr = [...agg].sort((a,b) => b.avgSev - a.avgSev);
+  const sevEl = document.getElementById('insight-severity');
+  sevEl.innerHTML = sevArr.slice(0,8).map(p => `
+    <div class="insight-bar">
+      <div class="insight-bar-label">${p.title}</div>
+      <div class="insight-bar-track"><div class="insight-bar-fill" style="width:${p.avgSev/maxSev*100}%;background:var(--accent)"></div></div>
+      <div class="insight-bar-val">${p.avgSev.toFixed(1)}/5</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px 0">No data yet</div>';
+
+  // WTP
+  const wtpArr = [...agg].sort((a,b) => b.avgWtp - a.avgWtp);
+  const wtpEl = document.getElementById('insight-wtp');
+  wtpEl.innerHTML = wtpArr.slice(0,8).map(p => `
+    <div class="insight-bar">
+      <div class="insight-bar-label">${p.title}</div>
+      <div class="insight-bar-track"><div class="insight-bar-fill" style="width:${p.avgWtp/maxWtp*100}%;background:var(--accent2)"></div></div>
+      <div class="insight-bar-val">${p.avgWtp.toFixed(1)}/4</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:13px;padding:12px 0">No data yet</div>';
+
+  // Beta pool
+  const betas = db.contacts.filter(c => c.flags?.beta || c.flags?.interested);
+  const betaEl = document.getElementById('insight-beta');
+  if (!betas.length) { betaEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0">No beta users flagged yet</div>'; }
+  else {
+    betaEl.innerHTML = betas.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--paper2)">
+        <div>
+          <div style="font-size:13px;font-weight:500;cursor:pointer" onclick="nav('profile','${c.id}')">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${c.propType} · ${c.location||'No location'}</div>
+        </div>
+        <div style="display:flex;gap:4px">${flagBadges(c.flags)}</div>
+      </div>
+    `).join('');
+  }
+
+  // Full aggregate
+  const aggEl = document.getElementById('insight-aggregate');
+  if (!agg.length) { aggEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0">No problems logged yet</div>'; }
+  else {
+    aggEl.innerHTML = agg.map(p => `
+      <div class="agg-card">
+        <div class="agg-card-header">
+          <div>
+            <div style="font-size:14px;font-weight:600">${p.title}</div>
+            <div class="agg-owners">${p.count} owner${p.count>1?'s':''} mentioned this</div>
+          </div>
+          <span class="cat-tag ${CAT_CLASS[p.category]||'cat-other'}">${p.category}</span>
+        </div>
+        <div class="agg-metrics">
+          <div class="agg-metric"><div class="agg-metric-val">${p.count}</div><div class="agg-metric-label">Owners</div></div>
+          <div class="agg-metric"><div class="agg-metric-val">${p.avgSev.toFixed(1)}</div><div class="agg-metric-label">Avg Sev</div></div>
+          <div class="agg-metric"><div class="agg-metric-val">${p.avgWtp.toFixed(1)}</div><div class="agg-metric-label">WTP Signal</div></div>
+        </div>
+        <div style="margin-top:10px;background:var(--paper2);border-radius:6px;height:6px;overflow:hidden">
+          <div style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent3),var(--accent));width:${Math.min(100,(p.count*20+p.avgSev*10+p.avgWtp*10))}%"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ===================== RENDER FOLLOWUPS =====================
+function renderFollowups() {
+  const el = document.getElementById('followups-list');
+  const today = new Date().toISOString().split('T')[0];
+  const all = db.contacts.filter(c => c.followupDate || c.flags?.followup).sort((a,b) => (a.followupDate||'9999').localeCompare(b.followupDate||'9999'));
+  if (!all.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">No follow-ups scheduled</div><div class="empty-state-sub">Set follow-up dates when editing contacts</div></div>`;
+    return;
+  }
+  el.innerHTML = all.map(c => {
+    const overdue = c.followupDate && c.followupDate <= today;
+    const probs = getContactProblems(c.id);
+    const convos = getContactConvos(c.id);
+    return `
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-family:'DM Serif Display',serif;font-size:18px;cursor:pointer" onclick="nav('profile','${c.id}')">${c.name}</span>
+              <span class="badge badge-stage-${c.stage}">${STAGES[c.stage]}</span>
+              ${overdue?'<span style="font-size:11px;color:var(--danger);font-weight:600">⚠ OVERDUE</span>':''}
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${c.propType} · ${c.location||'No location'} · ${c.portfolio}</div>
+            ${c.followupDate?`<div style="font-size:13px;color:${overdue?'var(--danger)':'var(--ink)'}">📅 Follow-up: ${formatDate(c.followupDate)}</div>`:''}
+            ${c.followupReason?`<div style="font-size:12px;color:var(--muted);margin-top:3px">Reason: ${c.followupReason}</div>`:''}
+            <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+              ${probs.length?`⚠ ${probs.length} problem${probs.length>1?'s':''} found`:'No problems logged'}
+              · ${convos.length?`${convos.length} conversation${convos.length>1?'s':''}`:'No conversations'}
+              ${probs.length?` · Avg severity: ${(probs.reduce((a,p)=>a+p.severity,0)/probs.length).toFixed(1)}/5`:''}
+            </div>
+            <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${flagBadges(c.flags)}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <button class="btn btn-primary btn-sm" onclick="nav('profile','${c.id}')">View Profile →</button>
+            <button class="btn btn-ghost btn-sm" onclick="openEditContact('${c.id}')">Edit Follow-up</button>
+          </div>
+        </div>
+        ${probs.length?`
+          <div class="divider"></div>
+          <div class="section-title">Key Problems</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${probs.slice(0,3).map(p=>`<div style="font-size:12px;padding:4px 10px;background:var(--paper2);border-radius:6px">${p.title} (${p.severity}/5)</div>`).join('')}
+          </div>
+        `:''}
+      </div>
+    `;
+  }).join('');
+}
+
+// ===================== SEED DATA =====================
+function seedData() {
+  if (db.contacts.length > 0) return; // don't re-seed
+  const contacts = [
+    { id:'c1', name:'Sarah Mitchell', email:'sarah.mitchell@gmail.com', phone:'+1 415 555 0101', propType:'Airbnb Host', portfolio:'6–20 properties', location:'San Francisco, CA', stage:3, source:'Airbnb listing search', notes:'Very engaged host. Manages 8 properties solo. Mentioned burnout multiple times.', followupDate: new Date(Date.now()+7*24*60*60*1000).toISOString().split('T')[0], followupReason:'Check if she replied to last email', flags:{ beta:true, interested:true, followup:true, 'future-customer':true }, oppScore:0, createdAt: new Date(Date.now()-20*24*60*60*1000).toISOString() },
+    { id:'c2', name:'David Park', email:'dpark@pm-solutions.com', phone:'+1 312 555 0202', propType:'Property Manager', portfolio:'20+ properties', location:'Chicago, IL', stage:4, source:'LinkedIn outreach', notes:'Professional property manager. Very tech-savvy. Looking for automation.', followupDate: new Date(Date.now()-3*24*60*60*1000).toISOString().split('T')[0], followupReason:'Wants a demo of anything related to guest automation', flags:{ beta:true, interested:true, followup:false, 'future-customer':true }, oppScore:8.5, createdAt: new Date(Date.now()-30*24*60*60*1000).toISOString() },
+    { id:'c3', name:'Maria Gonzalez', email:'mgonzalez@rentals.net', phone:'+1 305 555 0303', propType:'Long-term Landlord', portfolio:'2–5 properties', location:'Miami, FL', stage:2, source:'Facebook group referral', notes:'Small portfolio, but very frustrated with tenant screening.', followupDate:'', followupReason:'', flags:{ beta:false, interested:true, followup:false, 'future-customer':false }, oppScore:0, createdAt: new Date(Date.now()-10*24*60*60*1000).toISOString() },
+    { id:'c4', name:'James Thornton', email:'jthornton@bnbmaster.co', phone:'+1 720 555 0404', propType:'Short-term Rental', portfolio:'6–20 properties', location:'Denver, CO', stage:5, source:'STR conference', notes:'Very interested in a SaaS solution. Would pay for good tools.', followupDate: new Date(Date.now()+14*24*60*60*1000).toISOString().split('T')[0], followupReason:'Promised to introduce to 3 other hosts if we launch', flags:{ beta:true, interested:true, followup:false, 'future-customer':true }, oppScore:9.2, createdAt: new Date(Date.now()-45*24*60*60*1000).toISOString() },
+  ];
+  const conversations = [
+    { id:'cv1', contactId:'c1', type:'outreach', date:'2026-02-20', message:'Hi Sarah, I noticed your listings on Airbnb and I am doing research on property management challenges. Would you be open to a quick 20-min call to share your experience?', notes:'Initial cold outreach via Airbnb message', reply:'', createdAt: new Date(Date.now()-20*24*60*60*1000).toISOString() },
+    { id:'cv2', contactId:'c1', type:'reply', date:'2026-02-22', message:'', notes:'She replied! Very open to chatting. Said she "constantly battles with cleaner scheduling chaos".', reply:'Sure, happy to chat. Honestly dealing with SO many issues right now with cleaners and guest messaging.', createdAt: new Date(Date.now()-18*24*60*60*1000).toISOString() },
+    { id:'cv3', contactId:'c1', type:'call', date:'2026-02-28', message:'30 min discovery call', notes:'Deep conversation. Main problems: (1) cleaner no-shows causing bad reviews, (2) guest messaging takes 2hrs/day, (3) dynamic pricing is manual and stressful. She said she would "pay anything" for a tool that handled cleaners automatically.', reply:'', createdAt: new Date(Date.now()-12*24*60*60*1000).toISOString() },
+    { id:'cv4', contactId:'c2', type:'outreach', date:'2026-02-15', message:'Hi David, found you via LinkedIn. I am researching property management workflows at scale. What are the biggest operational bottlenecks you face?', notes:'LinkedIn InMail outreach', reply:'', createdAt: new Date(Date.now()-25*24*60*60*1000).toISOString() },
+    { id:'cv5', contactId:'c2', type:'reply', date:'2026-02-16', message:'', notes:'Rapid reply. Very professional. Immediately mentioned maintenance request routing as his #1 headache.', reply:'Good timing. Maintenance coordination is killing us. We get 200+ requests a month and tracking them is a nightmare.', createdAt: new Date(Date.now()-24*24*60*60*1000).toISOString() },
+    { id:'cv6', contactId:'c4', type:'call', date:'2026-01-30', message:'Met at Denver STR conference. 45 min hallway conversation.', notes:'Super detailed conversation. Has tried 5 different tools and hated all of them. Would switch immediately for something that "just works". Said would pay $200-300/mo easily for the right solution.', reply:'', createdAt: new Date(Date.now()-40*24*60*60*1000).toISOString() },
+  ];
+  const problems = [
+    { id:'p1', contactId:'c1', title:'Cleaner scheduling chaos', desc:'Cleaners frequently no-show or double-book, leading to uncleaned units and bad guest reviews. Sarah has to manually coordinate via WhatsApp with 12 different cleaners.', category:'Operations', severity:5, frequency:'Regularly', wtp:'High', workaround:'WhatsApp group with cleaners, checks manually every morning', quote:'I lose a good review every other week because a cleaner bailed last minute.', createdAt: new Date(Date.now()-12*24*60*60*1000).toISOString() },
+    { id:'p2', contactId:'c1', title:'Guest messaging overload', desc:'Responding to pre-stay questions, check-in instructions, and mid-stay issues takes 2+ hours every day.', category:'Guest Experience', severity:4, frequency:'Constantly', wtp:'Medium', workaround:'Saved replies in Airbnb but still has to customise each one', quote:'It feels like a part-time job just answering messages.', createdAt: new Date(Date.now()-12*24*60*60*1000).toISOString() },
+    { id:'p3', contactId:'c2', title:'Maintenance request routing', desc:'200+ maintenance requests per month tracked in a spreadsheet. Hard to assign to contractors, track status, and invoice.', category:'Maintenance', severity:5, frequency:'Constantly', wtp:'High', workaround:'Google Sheets + email threads with contractors', quote:'We have lost thousands to double-paying contractors because of tracking errors.', createdAt: new Date(Date.now()-24*24*60*60*1000).toISOString() },
+    { id:'p4', contactId:'c2', title:'Owner reporting is manual', desc:'Monthly reports for property owners take 4-6 hours to compile manually from multiple platforms.', category:'Finance', severity:3, frequency:'Occasionally', wtp:'Medium', workaround:'Copy-paste from Airbnb, VRBO, Booking.com into Excel', quote:'', createdAt: new Date(Date.now()-24*24*60*60*1000).toISOString() },
+    { id:'p5', contactId:'c3', title:'Tenant screening guesswork', desc:'Maria manually checks references by phone and uses gut feel. Has had 2 bad tenants in 3 years causing significant damage.', category:'Legal / Compliance', severity:4, frequency:'Occasionally', wtp:'Low', workaround:'Basic credit check + phone calls to previous landlords', quote:'I have no idea if someone is going to be a nightmare tenant until it is too late.', createdAt: new Date(Date.now()-10*24*60*60*1000).toISOString() },
+    { id:'p6', contactId:'c4', title:'Cleaner scheduling chaos', desc:'Same problem as Sarah but at 15 properties. Says coordinating cleaners is his single biggest daily headache.', category:'Operations', severity:5, frequency:'Constantly', wtp:'Very High', workaround:'A dedicated VA for $1200/mo just to manage cleaning logistics', quote:'I pay $1200 a month for a VA whose only job is to wrangle cleaners. That is how bad it is.', createdAt: new Date(Date.now()-40*24*60*60*1000).toISOString() },
+    { id:'p7', contactId:'c4', title:'Guest messaging overload', desc:'Spends 90 mins every morning on guest messages before he can do anything else.', category:'Guest Experience', severity:4, frequency:'Constantly', wtp:'High', workaround:'Copied templates, still manually triggered', quote:'', createdAt: new Date(Date.now()-40*24*60*60*1000).toISOString() },
+    { id:'p8', contactId:'c4', title:'Dynamic pricing is manual', desc:'Adjusting prices across 15 listings on 3 platforms every week takes 3+ hours. Missing revenue by not optimising.', category:'Finance', severity:3, frequency:'Regularly', wtp:'Medium', workaround:'Guessing based on competitor prices manually checked', quote:'I know I am leaving money on the table every single week.', createdAt: new Date(Date.now()-40*24*60*60*1000).toISOString() },
+  ];
+  db.contacts = contacts;
+  db.conversations = conversations;
+  db.problems = problems;
+  saveDB();
+}
+
+// ===================== INIT =====================
+loadDB();
+seedData();
+updateSidebar();
+renderDashboard();
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      const modalId = this.id.replace('modal-', '');
+      closeModal(modalId);
+    }
+  });
+});
+</script>
+</body>
+</html>
