@@ -12,8 +12,9 @@ export default function App({ Component, pageProps }) {
       setSession(session)
       if (!session && router.pathname !== '/login') router.push('/login')
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
+      if (session && router.pathname === '/login') router.push('/')
       if (!session) router.push('/login')
     })
     return () => subscription.unsubscribe()
