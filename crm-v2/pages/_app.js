@@ -2,6 +2,7 @@ import '../styles/globals.css'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/router'
+import { Analytics } from '@vercel/analytics/next'
 
 export default function App({ Component, pageProps }) {
   const [session, setSession] = useState(undefined)
@@ -26,5 +27,8 @@ export default function App({ Component, pageProps }) {
     </div>
   )
 
-  return <Component {...pageProps} session={session} />
+  return <>
+    <Component {...pageProps} session={session} />
+    <Analytics />
+  </>
 }
