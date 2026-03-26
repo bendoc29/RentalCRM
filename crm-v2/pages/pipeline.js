@@ -46,7 +46,16 @@ export default function Pipeline() {
                     const score = calcOppScore(c, cProbs)
                     return (
                       <Link key={c.id} href={`/contacts/${c.id}`} className="pipe-card">
-                        <div className="pipe-card-name">{c.name}</div>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                          <div className="pipe-card-name">{c.name}</div>
+                          {c.owner && (
+                            <span style={{
+                              fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:5,
+                              background: c.owner==='BDoc' ? '#dbeafe' : '#fce7f3',
+                              color: c.owner==='BDoc' ? '#1d4ed8' : '#be185d'
+                            }}>{c.owner}</span>
+                          )}
+                        </div>
                         <div className="pipe-card-sub">{c.prop_type}</div>
                         {c.location && <div className="pipe-card-sub">{c.location}</div>}
                         {cProbs.length > 0 && <div style={{ fontSize:11, color:'var(--accent)', marginTop:4 }}>⚠ {cProbs.length} problem{cProbs.length>1?'s':''}</div>}
