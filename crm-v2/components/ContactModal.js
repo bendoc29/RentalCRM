@@ -81,16 +81,18 @@ export default function ContactModal({ existing, onClose, onSaved }) {
             <div className="form-group">
   <label className="form-label">Added by</label>
   <div style={{ display:'flex', gap:8 }}>
-    {['BDoc','Kearns'].map(o => (
-      <button key={o} type="button" onClick={() => set('owner', o)}
+    {[{label:'BDoc',color:'#1d4ed8',bg:'#dbeafe'},{label:'Kearns',color:'#be185d',bg:'#fce7f3'}].map(o => (
+      <button key={o.label} type="button" onClick={() => set('owner', o.label)}
         style={{
-          padding:'7px 22px', borderRadius:7, border:'2px solid',
-          borderColor: form.owner===o ? 'var(--primary)' : 'var(--border)',
-          background: form.owner===o ? 'var(--primary)' : 'transparent',
-          color: form.owner===o ? '#fff' : 'var(--text-muted)',
-          fontWeight:600, cursor:'pointer', fontSize:13
+          padding:'8px 26px', borderRadius:8,
+          border: `2px solid ${o.color}`,
+          background: form.owner===o.label ? o.color : o.bg,
+          color: form.owner===o.label ? '#fff' : o.color,
+          fontWeight:700, cursor:'pointer', fontSize:13,
+          opacity: form.owner===o.label ? 1 : 0.45,
+          transition:'all 0.15s ease'
         }}>
-        {o}
+        {o.label}
       </button>
     ))}
   </div>
