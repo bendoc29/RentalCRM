@@ -8,7 +8,7 @@ const EMPTY = {
   notes:'', followup_date:'', followup_reason:'', followup_priority:'Medium',
   stage:0, relationship_warmth:'Cold', future_fit:'Research Only',
   flag_beta:false, flag_interested:false, flag_followup:false, flag_future_customer:false,
-  opp_score:0, wtp_estimate:'Unknown', re_engagement_angle:''
+  opp_score:0, wtp_estimate:'Unknown', re_engagement_angle:'', owner:'BDoc'
 }
 
 const FLAGS = [
@@ -77,7 +77,24 @@ export default function ContactModal({ existing, onClose, onSaved }) {
                 {['1 property','2–5 properties','6–20 properties','20–50 properties','50+ properties','Unknown'].map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
-            <div className="form-group col-span-2"><label className="form-label">Notes</label><textarea className="form-textarea" value={form.notes||''} onChange={e=>set('notes',e.target.value)} placeholder="Initial observations about this person..." /></div>
+            <div className="form-group">
+  <label className="form-label">Added by</label>
+  <div style={{ display:'flex', gap:8 }}>
+    {['BDoc','Kearns'].map(o => (
+      <button key={o} type="button" onClick={() => set('owner', o)}
+        style={{
+          padding:'7px 22px', borderRadius:7, border:'2px solid',
+          borderColor: form.owner===o ? 'var(--primary)' : 'var(--border)',
+          background: form.owner===o ? 'var(--primary)' : 'transparent',
+          color: form.owner===o ? '#fff' : 'var(--text-muted)',
+          fontWeight:600, cursor:'pointer', fontSize:13
+        }}>
+        {o}
+      </button>
+    ))}
+  </div>
+</div>
+<div className="form-group col-span-2"><label className="form-label">Notes</label><textarea className="form-textarea" value={form.notes||''} onChange={e=>set('notes',e.target.value)} placeholder="Initial observations about this person..." /></div>
           </div>
         )}
 
