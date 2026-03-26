@@ -31,9 +31,10 @@ export default function ContactModal({ existing, onClose, onSaved }) {
     if (!form.name.trim()) { setErr('Name is required'); return }
     setLoading(true); setErr(null)
     const { data: { user } } = await supabase.auth.getUser()
+    const { user_id: _uid, id: _id, created_at: _ca, updated_at: _ua, ...updatePayload } = { ...form, user_id: user.id }
     const payload = { ...form, user_id: user.id }
     const { error } = existing
-      ? await supabase.from('contacts').update(payload).eq('id', existing.id)
+      ? await supabase.from('contacts').update(updatePayload).eq('id', existing.id)
       : await supabase.from('contacts').insert(payload)
     setLoading(false)
     if (error) { setErr(error.message); return }
