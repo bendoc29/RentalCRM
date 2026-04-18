@@ -128,6 +128,7 @@ tr:hover td { background: var(--paper); cursor: pointer; }
 .badge-cold { background: #e8eef8; color: #2a3a6a; border: 1px solid #b0c0e0; }
 .badge-beta { background: #fff8e0; color: #7a5500; border: 1px solid #e0c040; }
 .badge-lead { background: #e0ffe8; color: #005a20; border: 1px solid #60c880; }
+.badge-active { background: #d0f5e0; color: #1a5e32; border: 1px solid #4db870; font-weight: 600; }
 
 /* ── FORMS ── */
 .form-group { display: flex; flex-direction: column; gap: 4px; }

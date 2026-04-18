@@ -27,7 +27,7 @@ export default function ContactProfile() {
 
   async function load() {
     const [{ data:c },{ data:cv },{ data:p }] = await Promise.all([
-      supabase.from('contacts').select('*').eq('id',id).single(),
+      supabase.from('contacts').select('*').eq('id',id).maybeSingle(),
       supabase.from('conversations').select('*').eq('contact_id',id).order('date',{ascending:false}),
       supabase.from('problems').select('*').eq('contact_id',id).order('severity',{ascending:false}),
     ])
@@ -40,6 +40,12 @@ export default function ContactProfile() {
     if (!confirm('Delete this contact and all their data?')) return
     await supabase.from('contacts').delete().eq('id',id)
     router.push('/contacts')
+  }
+
+  async function toggleConversationActive() {
+    const next = !contact.conversation_active
+    await supabase.from('contacts').update({ conversation_active: next }).eq('id', id)
+    setContact(c => ({ ...c, conversation_active: next }))
   }
 
   if (!contact) return <Layout><div className="page" style={{ color:'var(--muted)' }}>Loading…</div></Layout>
@@ -104,6 +110,16 @@ export default function ContactProfile() {
             {/* Stage + Warmth */}
             <div className="card card-sm">
               <span className="sec-label">Relationship Status</span>
+              <div className="meta-row">
+                <span className="meta-key">Conversation</span>
+                <button
+                  className={`btn btn-xs ${contact.conversation_active ? 'btn-green' : 'btn-ghost'}`}
+                  style={{ fontWeight: contact.conversation_active ? 700 : 400 }}
+                  onClick={toggleConversationActive}
+                >
+                  {contact.conversation_active ? '● Active' : 'Inactive'}
+                </button>
+              </div>
               <div className="meta-row"><span className="meta-key">Stage</span><StageB stage={contact.stage} /></div>
               <div className="meta-row"><span className="meta-key">Warmth</span><WarmthB warmth={contact.relationship_warmth} /></div>
               <div className="meta-row"><span className="meta-key">Future Fit</span><span className="meta-val" style={{ fontSize:11 }}>{contact.future_fit||'—'}</span></div>
@@ -306,7 +322,7 @@ export default function ContactProfile() {
       </div>
 
       {showEdit && <ContactModal existing={contact} onClose={() => setShowEdit(false)} onSaved={() => { setShowEdit(false); setRefresh(r=>r+1) }} />}
-      {showConvo && <ConvoModal contactId={id} onClose={() => setShowConvo(false)} onSaved={() => { setShowConvo(false); setRefresh(r=>r+1) }} />}
+      {showConvo && <ConvoModal contactId={id} onClose={() => setShowConvo(false)} onSaved={(newConvo) => { setShowConvo(false); if (newConvo) setConvos(prev => [newConvo, ...prev]); else setRefresh(r=>r+1) }} />}
       {showProb && <ProblemModal contactId={id} onClose={() => setShowProb(false)} onSaved={() => { setShowProb(false); setRefresh(r=>r+1) }} />}
       {showGen && <MessageGenerator contact={contact} problems={problems} convos={convos} onClose={() => setShowGen(false)} onSaved={(m) => { showToast(`Message saved`); setRefresh(r=>r+1) }} />}
       <Toast message={toast} />

@@ -7,6 +7,7 @@ import ContactModal from '../../components/ContactModal'
 
 const FILTERS = [
   { id:'all', label:'All' },
+  { id:'active_convos', label:'Active Conversations' },
   { id:'not_contacted', label:'Not Contacted' },
   { id:'outreach_sent', label:'Outreach Sent' },
   { id:'replied', label:'Replied' },
@@ -38,6 +39,7 @@ export default function Contacts() {
   const today = new Date().toISOString().split('T')[0]
 
   function applyFilter(c) {
+    if (filter === 'active_convos') return !!c.conversation_active
     if (filter === 'not_contacted') return c.stage <= 1
     if (filter === 'outreach_sent') return c.stage === 2
     if (filter === 'replied') return c.stage === 3
@@ -58,6 +60,13 @@ export default function Contacts() {
     if (!confirm('Delete this contact and all data?')) return
     await supabase.from('contacts').delete().eq('id', id)
     setRefresh(r=>r+1)
+  }
+
+  async function toggleActive(e, contactId, current) {
+    e.stopPropagation()
+    const next = !current
+    await supabase.from('contacts').update({ conversation_active: next }).eq('id', contactId)
+    setContacts(cs => cs.map(c => c.id === contactId ? { ...c, conversation_active: next } : c))
   }
 
   return (
@@ -104,7 +113,17 @@ export default function Contacts() {
                 return (
                   <tr key={c.id} onClick={() => window.location.href=`/contacts/${c.id}`}>
                     <td>
-                      <div style={{ fontWeight:500 }}>{c.name}</div>
+                      <div style={{ fontWeight:500, display:'flex', alignItems:'center', gap:6 }}>
+                        {c.name}
+                        {c.conversation_active && (
+                          <span
+                            className="badge badge-active"
+                            style={{ cursor:'pointer', fontSize:9.5, padding:'1px 7px' }}
+                            onClick={e => toggleActive(e, c.id, true)}
+                            title="Click to deactivate"
+                          >● Active</span>
+                        )}
+                      </div>
                       {c.email && <div style={{ fontSize:11, color:'var(--muted)' }}>{c.email}</div>}
                     </td>
                     <td>

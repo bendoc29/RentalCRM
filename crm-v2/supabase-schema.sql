@@ -45,6 +45,7 @@ create table if not exists public.contacts (
   flag_interested boolean not null default false,
   flag_followup boolean not null default false,
   flag_future_customer boolean not null default false,
+  conversation_active boolean not null default false,
 
   created_at timestamptz default now(),
   updated_at timestamptz
@@ -130,6 +131,7 @@ create policy "Users manage own messages" on public.generated_messages
 
 -- ─── INDEXES ───────────────────────────────────────────────────────────────
 create index if not exists idx_contacts_user on public.contacts(user_id);
+create index if not exists idx_contacts_conversation_active on public.contacts(conversation_active) where conversation_active = true;
 create index if not exists idx_contacts_stage on public.contacts(stage);
 create index if not exists idx_contacts_followup on public.contacts(followup_date);
 create index if not exists idx_conversations_contact on public.conversations(contact_id);

@@ -11,13 +11,13 @@ export function ConvoModal({ contactId, onClose, onSaved }) {
 
   async function save() {
     setLoading(true)
-    await supabase.from('conversations').insert({ ...form, contact_id: contactId })
+    const { data: newConvo } = await supabase.from('conversations').insert({ ...form, contact_id: contactId }).select().single()
     // Auto-advance stage based on type
     const stageMap = { outreach:2, reply:3, call:4, meeting:4 }
     const newStage = stageMap[form.type]
     if (newStage) await supabase.from('contacts').update({ stage: newStage }).eq('id', contactId).lt('stage', newStage)
     setLoading(false)
-    onSaved()
+    onSaved(newConvo)
   }
 
   return (
