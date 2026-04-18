@@ -8,7 +8,7 @@ const EMPTY = {
   notes:'', followup_date:'', followup_reason:'', followup_priority:'Medium',
   stage:0, relationship_warmth:'Cold', future_fit:'Research Only',
   flag_beta:false, flag_interested:false, flag_followup:false, flag_future_customer:false,
-  opp_score:0, wtp_estimate:'Unknown', re_engagement_angle:'', owner:'BDoc'
+  opp_score:0, wtp_estimate:'Unknown', re_engagement_angle:'', owner:'Kearns'
 }
 
 const FLAGS = [

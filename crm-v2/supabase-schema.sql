@@ -40,6 +40,9 @@ create table if not exists public.contacts (
   opp_score numeric not null default 0,
   re_engagement_angle text,
 
+  -- Owner (BDoc or Kearns — display/attribution only, not access control)
+  owner text not null default 'Kearns',
+
   -- Flags
   flag_beta boolean not null default false,
   flag_interested boolean not null default false,
