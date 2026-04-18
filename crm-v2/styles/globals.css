@@ -178,6 +178,7 @@ tr:hover td { background: var(--paper); cursor: pointer; }
 .timeline-dot-reply    { background: var(--green); }
 .timeline-dot-call     { background: var(--gold); }
 .timeline-dot-note     { background: var(--muted); }
+.timeline-dot-imported { background: var(--purple); }
 .timeline-connector { width: 1px; background: var(--border); margin: 0 auto; }
 
 /* ── SEVERITY ── */

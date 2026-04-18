@@ -6,8 +6,9 @@ import { STAGES, WARMTH, FUTURE_FIT, formatDate, SevDots, FlagBadges, StageB, Wa
 import Link from 'next/link'
 import ContactModal from '../../components/ContactModal'
 import { ConvoModal, ProblemModal } from '../../components/Modals'
+import { ConversationImportModal } from '../../components/ConversationImportModal'
 
-const TYPE_COLORS = { outreach:'var(--blue)', reply:'var(--green)', call:'var(--gold)', note:'var(--muted)', followup:'var(--purple)' }
+const TYPE_COLORS = { outreach:'var(--blue)', reply:'var(--green)', call:'var(--gold)', note:'var(--muted)', followup:'var(--purple)', imported:'var(--purple)' }
 
 export default function ContactProfile() {
   const router = useRouter()
@@ -20,6 +21,7 @@ export default function ContactProfile() {
   const [showConvo, setShowConvo] = useState(false)
   const [showProb, setShowProb] = useState(false)
   const [showGen, setShowGen] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [refresh, setRefresh] = useState(0)
   const [toast, showToast] = useToast()
 
@@ -75,6 +77,10 @@ export default function ContactProfile() {
             <button className="btn btn-green" onClick={() => setShowGen(true)}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               Generate Message
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowImport(true)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Import Conversation
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => setShowConvo(true)}>+ Log Interaction</button>
             <button className="btn btn-ghost btn-sm" onClick={() => setShowProb(true)}>+ Log Problem</button>
@@ -322,6 +328,7 @@ export default function ContactProfile() {
       </div>
 
       {showEdit && <ContactModal existing={contact} onClose={() => setShowEdit(false)} onSaved={() => { setShowEdit(false); setRefresh(r=>r+1) }} />}
+      {showImport && <ConversationImportModal contactId={id} onClose={() => setShowImport(false)} onSaved={(newConvo) => { setShowImport(false); if (newConvo) setConvos(prev => [newConvo, ...prev]); else setRefresh(r=>r+1) }} />}
       {showConvo && <ConvoModal contactId={id} onClose={() => setShowConvo(false)} onSaved={(newConvo) => { setShowConvo(false); if (newConvo) setConvos(prev => [newConvo, ...prev]); else setRefresh(r=>r+1) }} />}
       {showProb && <ProblemModal contactId={id} onClose={() => setShowProb(false)} onSaved={() => { setShowProb(false); setRefresh(r=>r+1) }} />}
       {showGen && <MessageGenerator contact={contact} problems={problems} convos={convos} onClose={() => setShowGen(false)} onSaved={(m) => { showToast(`Message saved`); setRefresh(r=>r+1) }} />}
