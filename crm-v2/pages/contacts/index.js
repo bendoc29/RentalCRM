@@ -43,7 +43,7 @@ export default function Contacts() {
     if (filter === 'not_contacted') return c.stage <= 1
     if (filter === 'outreach_sent') return c.stage === 2
     if (filter === 'replied') return c.stage === 3
-    if (filter === 'insight_captured') return c.stage >= 5
+    if (filter === 'insight_captured') return c.stage >= 4
     if (filter === 'beta') return c.flag_beta || c.future_fit === 'Beta Candidate'
     if (filter === 'warm_lead') return c.flag_interested || c.flag_future_customer || c.future_fit === 'Likely Early Customer'
     if (filter === 'followup_due') return c.followup_date && c.followup_date <= today

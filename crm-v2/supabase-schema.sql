@@ -23,7 +23,7 @@ create table if not exists public.contacts (
   -- Outreach
   source text,
   outreach_channel text default 'Email',
-  stage integer not null default 0,
+  stage integer not null default 0, -- 0=Identified 1=Outreach Prepared 2=Outreach Sent 3=Replied 4=Insight Captured 5=Follow-Up Later 6=Beta Candidate 7=Re-Engage When Ready 8=Active Opportunity
   relationship_warmth text default 'Cold',
 
   -- Notes

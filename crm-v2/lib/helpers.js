@@ -5,7 +5,6 @@ export const STAGES = [
   'Outreach Prepared',
   'Outreach Sent',
   'Replied',
-  'Conversation Active',
   'Insight Captured',
   'Follow-Up Later',
   'Beta Candidate',

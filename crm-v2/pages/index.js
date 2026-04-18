@@ -25,7 +25,7 @@ export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0]
 
   const totalContacts = contacts.length
-  const activeResearch = contacts.filter(c => c.stage >= 2 && c.stage <= 5).length
+  const activeResearch = contacts.filter(c => c.stage >= 2 && c.stage <= 4).length
   const convosComplete = contacts.filter(c => c.stage >= 4).length
   const warmLeads = contacts.filter(c => c.flag_interested || c.flag_future_customer || c.future_fit === 'Likely Early Customer').length
   const betaCandidates = contacts.filter(c => c.flag_beta || c.future_fit === 'Beta Candidate').length
