@@ -5,8 +5,13 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
-  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' })
+  const rawKey = process.env.ANTHROPIC_API_KEY || '';
+  console.log('Raw key first 10 char codes:', [...rawKey.slice(0, 10)].map(c => c.charCodeAt(0)));
+  console.log('Raw key last 10 char codes:', [...rawKey.slice(-10)].map(c => c.charCodeAt(0)));
+  console.log('Raw key length:', rawKey.length);
+  console.log('Trimmed key length:', rawKey.trim().length);
+
+  if (!rawKey.trim()) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' })
 
   const { text, images } = req.body
 
@@ -60,14 +65,18 @@ Return JSON now.`
 
   userContent.push({ type: 'text', text: extractionPrompt })
 
+  const headers = {
+    'x-api-key': rawKey.trim(),
+    'anthropic-version': '2023-06-01',
+    'content-type': 'application/json',
+  }
+  console.log('Header keys:', Object.keys(headers))
+  console.log('x-api-key length being sent:', headers['x-api-key'].length)
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 2000,
@@ -76,15 +85,16 @@ Return JSON now.`
       }),
     })
 
-    const data = await response.json()
+    const responseText = await response.text()
+    console.log('Anthropic response status:', response.status)
+    console.log('Anthropic response body:', responseText)
 
     if (!response.ok) {
-      console.error('[parse-conversation] Anthropic error:', response.status, data)
-      return res.status(500).json({ error: data?.error?.message || 'Failed to parse conversation' })
+      return res.status(500).json({ error: JSON.parse(responseText)?.error?.message || 'Failed to parse conversation' })
     }
 
+    const data = JSON.parse(responseText)
     const raw = data.content[0]?.text || '{}'
-    // Strip markdown code fences if present
     const cleaned = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
 
     try {
