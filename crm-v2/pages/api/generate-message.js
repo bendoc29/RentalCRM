@@ -1,7 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 const MSG_PROMPTS = {
   warm_checkin: `Write a warm, brief check-in message. The tone should feel like a genuine follow-up from someone who remembered the conversation — not a sales pitch. Keep it short (3–5 sentences). Reference something specific from their context. Don't mention any product or solution yet.`,
   
@@ -18,6 +16,8 @@ const MSG_PROMPTS = {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY?.trim() })
 
   const { contact, problems, convos, msgType, customInstruction } = req.body
 
@@ -72,7 +72,7 @@ Write the message now. Address them by first name. Make it feel personal and rel
 
   try {
     const message = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-4-6',
       max_tokens: 600,
       messages: [{ role: 'user', content: userPrompt }],
       system: systemPrompt,

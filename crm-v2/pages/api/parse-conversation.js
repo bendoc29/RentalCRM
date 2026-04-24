@@ -1,13 +1,16 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const rawKey = process.env.ANTHROPIC_API_KEY
+  console.log('[parse-conversation] key defined:', !!rawKey, '| length:', rawKey?.length, '| starts with sk-ant-:', rawKey?.startsWith('sk-ant-'))
+
+  const client = new Anthropic({ apiKey: rawKey?.trim() })
 
   const { text, images } = req.body
 
@@ -63,7 +66,7 @@ Return JSON now.`
 
   try {
     const message = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userContent }],
@@ -80,7 +83,7 @@ Return JSON now.`
       return res.status(500).json({ error: 'AI response was not valid JSON', raw })
     }
   } catch (err) {
-    console.error('parse-conversation error:', err)
+    console.error('[parse-conversation] Anthropic error:', err?.status, err?.message)
     return res.status(500).json({ error: err.message || 'Failed to parse conversation' })
   }
 }
