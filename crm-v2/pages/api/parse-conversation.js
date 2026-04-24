@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk'
-
 export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
 }
@@ -7,10 +5,8 @@ export const config = {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const rawKey = process.env.ANTHROPIC_API_KEY
-  console.log('[parse-conversation] key defined:', !!rawKey, '| length:', rawKey?.length, '| starts with sk-ant-:', rawKey?.startsWith('sk-ant-'))
-
-  const client = new Anthropic({ apiKey: rawKey?.trim() })
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' })
 
   const { text, images } = req.body
 
@@ -65,14 +61,29 @@ Return JSON now.`
   userContent.push({ type: 'text', text: extractionPrompt })
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userContent }],
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userContent }],
+      }),
     })
 
-    const raw = message.content[0]?.text || '{}'
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error('[parse-conversation] Anthropic error:', response.status, data)
+      return res.status(500).json({ error: data?.error?.message || 'Failed to parse conversation' })
+    }
+
+    const raw = data.content[0]?.text || '{}'
     // Strip markdown code fences if present
     const cleaned = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '').trim()
 
@@ -83,7 +94,7 @@ Return JSON now.`
       return res.status(500).json({ error: 'AI response was not valid JSON', raw })
     }
   } catch (err) {
-    console.error('[parse-conversation] Anthropic error:', err?.status, err?.message)
+    console.error('[parse-conversation] fetch error:', err.message)
     return res.status(500).json({ error: err.message || 'Failed to parse conversation' })
   }
 }
