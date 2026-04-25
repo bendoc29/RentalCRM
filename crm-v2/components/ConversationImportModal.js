@@ -141,6 +141,8 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
           setContactSearch(match.contact.name)
         } else if (data.otherParty?.name) {
           setNewContactName(data.otherParty.name)
+          setContactSearch(data.otherParty.name)
+          setShowCreateContact(true)
         }
       } else {
         const pre = allContacts.find(c => c.id === selectedContactId)
@@ -418,6 +420,12 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
                     </div>
                   </div>
                 )}
+
+                {!selectedContactId && !showCreateContact && (
+                  <div style={{ fontSize:11.5, color:'var(--gold)', marginTop:6 }}>
+                    Search for an existing contact or create a new one to enable saving.
+                  </div>
+                )}
               </div>
 
               {/* Platform */}
@@ -520,6 +528,7 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
                 className="btn btn-primary"
                 onClick={handleSave}
                 disabled={saving || !selectedContactId}
+                title={!selectedContactId ? 'Select or create a contact above to save' : undefined}
               >
                 {saving ? <><Spinner /> Saving…</> : `Save to ${selectedContact?.name || 'Contact'}`}
               </button>
