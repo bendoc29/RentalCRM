@@ -66,6 +66,7 @@ create table if not exists public.conversations (
   notes text,
   sentiment text default 'Neutral',
   next_step text,
+  messages_json jsonb,
   created_at timestamptz default now()
 );
 

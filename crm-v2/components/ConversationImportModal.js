@@ -78,6 +78,7 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
   const [showCreateContact, setShowCreateContact] = useState(false)
   const [newContactName, setNewContactName] = useState('')
   const [newContactEmail, setNewContactEmail] = useState('')
+  const [newContactPropType, setNewContactPropType] = useState('Airbnb Host')
   const [creatingContact, setCreatingContact] = useState(false)
 
   const [saving, setSaving] = useState(false)
@@ -166,7 +167,7 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
       name: newContactName.trim(),
       email: newContactEmail.trim() || null,
       user_id: user.id,
-      prop_type: 'Airbnb Host',
+      prop_type: newContactPropType,
       portfolio: '1 property',
       stage: 0,
       relationship_warmth: 'Cold',
@@ -224,6 +225,10 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
         notes: notesBody,
         next_step: editNextAction,
         sentiment: 'Neutral',
+        messages_json: {
+          otherParty: extracted?.otherParty || {},
+          messages: editMessages,
+        },
       })
       .select()
       .single()
@@ -411,6 +416,9 @@ export function ConversationImportModal({ contactId = null, onClose, onSaved }) 
                     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
                       <input className="form-input" placeholder="Full name *" value={newContactName} onChange={e => setNewContactName(e.target.value)} style={{ fontSize:12 }} />
                       <input className="form-input" placeholder="Email (optional)" value={newContactEmail} onChange={e => setNewContactEmail(e.target.value)} style={{ fontSize:12 }} />
+                      <select className="form-select" value={newContactPropType} onChange={e => setNewContactPropType(e.target.value)} style={{ fontSize:12 }}>
+                        {['Property Manager','Airbnb Host','Short-term Rental','Long-term Landlord','Mixed Portfolio','Holiday Let','Co-living','Other'].map(o => <option key={o}>{o}</option>)}
+                      </select>
                     </div>
                     <div style={{ display:'flex', gap:6 }}>
                       <button className="btn btn-primary btn-sm" onClick={handleCreateContact} disabled={creatingContact || !newContactName.trim()}>

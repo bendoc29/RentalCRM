@@ -70,7 +70,7 @@ export default function ContactModal({ existing, onClose, onSaved }) {
             <div className="form-group"><label className="form-label">LinkedIn / Website</label><input className="form-input" value={form.linkedin||''} onChange={e=>set('linkedin',e.target.value)} placeholder="linkedin.com/in/..." /></div>
             <div className="form-group"><label className="form-label">Property / Business Type</label>
               <select className="form-select" value={form.prop_type} onChange={e=>set('prop_type',e.target.value)}>
-                {['Airbnb Host','Short-term Rental','Long-term Landlord','Property Manager','Mixed Portfolio','Holiday Let','Co-living','Other'].map(o=><option key={o}>{o}</option>)}
+                {['Property Manager','Airbnb Host','Short-term Rental','Long-term Landlord','Mixed Portfolio','Holiday Let','Co-living','Other'].map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div className="form-group"><label className="form-label">Portfolio Size</label>

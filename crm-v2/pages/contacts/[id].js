@@ -55,6 +55,7 @@ export default function ContactProfile() {
   const score = calcOppScore(contact, problems, convos)
   const today = new Date().toISOString().split('T')[0]
   const overdue = contact.followup_date && contact.followup_date <= today
+  const importedConvos = convos.filter(cv => cv.type === 'imported')
 
   return (
     <Layout>
@@ -183,6 +184,7 @@ export default function ContactProfile() {
                 ['timeline',`Timeline (${convos.length})`],
                 ['problems',`Problems (${problems.length})`],
                 ['commercial','Commercial'],
+                ['conversation', importedConvos.length ? `Conversation (${importedConvos.length})` : 'Conversation'],
               ].map(([k,l]) => (
                 <div key={k} className={`tab ${tab===k?'active':''}`} onClick={() => setTab(k)}>{l}</div>
               ))}
@@ -259,6 +261,94 @@ export default function ContactProfile() {
                   </div>
                 ))}
                 <button className="btn btn-ghost btn-sm" style={{ marginTop:8 }} onClick={() => setShowProb(true)}>+ Log Problem</button>
+              </div>
+            )}
+
+            {/* CONVERSATION */}
+            {tab === 'conversation' && (
+              <div>
+                {!importedConvos.length ? (
+                  <div className="empty">
+                    <div className="empty-icon">💬</div>
+                    <div className="empty-title">No imported conversations yet</div>
+                    <div className="empty-sub">Import a conversation to view the full chat thread here</div>
+                    <button className="btn btn-primary" style={{ marginTop:14 }} onClick={() => setShowImport(true)}>Import Conversation</button>
+                  </div>
+                ) : importedConvos.map((cv, idx) => {
+                  const threadData = cv.messages_json
+                  const messages = threadData?.messages || []
+                  const otherParty = threadData?.otherParty || {}
+                  return (
+                    <div key={cv.id} style={{ marginBottom: idx < importedConvos.length - 1 ? 28 : 0 }}>
+                      {/* Thread header */}
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14, padding:'8px 12px', background:'var(--paper)', borderRadius:8, border:'1.5px solid var(--border)' }}>
+                        <span style={{ fontSize:13 }}>💬</span>
+                        <span style={{ fontWeight:600, fontSize:12.5 }}>{cv.channel || 'Imported'}</span>
+                        <span style={{ color:'var(--border)' }}>·</span>
+                        <span style={{ fontSize:11, color:'var(--muted)', fontFamily:'Geist Mono,monospace' }}>{formatDate(cv.date)}</span>
+                        {otherParty.name && (
+                          <>
+                            <span style={{ color:'var(--border)' }}>·</span>
+                            <span style={{ fontSize:11, color:'var(--muted)' }}>
+                              with <strong style={{ color:'var(--ink)' }}>{otherParty.name}</strong>
+                              {otherParty.handle ? ` (${otherParty.handle})` : ''}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Chat bubbles */}
+                      {messages.length > 0 ? (
+                        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
+                          {messages.map((m, i) => {
+                            const isJack = m.sender === 'jack'
+                            return (
+                              <div key={i} style={{ display:'flex', justifyContent: isJack ? 'flex-end' : 'flex-start' }}>
+                                <div style={{
+                                  maxWidth:'72%',
+                                  padding:'8px 12px',
+                                  borderRadius: isJack ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
+                                  background: isJack ? '#1d4ed8' : 'var(--paper2)',
+                                  color: isJack ? '#fff' : 'var(--ink)',
+                                  border: isJack ? 'none' : '1.5px solid var(--border)',
+                                  fontSize:13,
+                                  lineHeight:1.5,
+                                }}>
+                                  {m.timestamp && (
+                                    <div style={{ fontSize:9.5, opacity:.55, marginBottom:3, fontFamily:'Geist Mono,monospace' }}>{m.timestamp}</div>
+                                  )}
+                                  {m.content}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : cv.message ? (
+                        /* Fallback for imports without structured messages_json */
+                        <div style={{ fontSize:12.5, lineHeight:1.7, color:'var(--ink)', whiteSpace:'pre-wrap', padding:'12px 14px', background:'var(--paper)', borderRadius:8, border:'1.5px solid var(--border)', marginBottom:12 }}>
+                          {cv.message}
+                        </div>
+                      ) : null}
+
+                      {/* Notes (summary + insights) */}
+                      {cv.notes && (
+                        <div style={{ padding:'10px 13px', background:'var(--paper)', borderRadius:8, border:'1.5px solid var(--border)', fontSize:12, color:'var(--muted)', lineHeight:1.65, marginBottom:8, whiteSpace:'pre-wrap' }}>
+                          {cv.notes}
+                        </div>
+                      )}
+                      {cv.next_step && (
+                        <div style={{ padding:'7px 11px', background:'var(--paper2)', borderRadius:6, fontSize:12, color:'var(--ink)' }}>
+                          → Next: {cv.next_step}
+                        </div>
+                      )}
+
+                      {/* Divider between conversations */}
+                      {idx < importedConvos.length - 1 && (
+                        <div style={{ marginTop:28, borderTop:'1.5px dashed var(--border)' }} />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
 
